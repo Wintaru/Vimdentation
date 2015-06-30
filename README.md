@@ -21,5 +21,14 @@ Until I decide if this deserves to go on the Package Manager for Sublime Text, y
 { "keys": ["shift+tab"], "command": "vim_shift_tab_press" }
 ```
 
+In my case, I also have the following in my Preferences.sublime-settings:
+
+```
+"auto_indent": true,
+"indent_to_bracket": true,
+"tab_size": 8,
+"translate_tabs_to_spaces": true
+```
+
 ## Improvements
 Please feel free to let me know if you find issues with this plugin. I'm not a python developer, this was cobbled together as a way for me to get my feet wet. I'm sure there are things that could be done better, and I'm also sure there are bugs to uncover. Thanks!
