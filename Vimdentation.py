@@ -15,22 +15,15 @@ class VimTabPressCommand(sublime_plugin.TextCommand):
     complete when "auto_complete_commit_on_tab": true is
     set.
 
-    I wrote this because the code base I work in has
-    requirements that are a bit old and while vim can
-    accommodate them easily, for whatever reason Sublime
-    has decided this is not a priority.
-
     This lets you set a tab char width in spaces that
     is independent of the spaces advanced when the tab
     key is pressed. In my case, tabs are translated to
     spaces (8 of them), but below I have it set to insert
-    4 spaces when tab is pressed. If you need to change
-    the number of spaces that are inserted, you must
-    change both the spaces variable below as well as the
-    integer that i is incremented by to match.
+    4 spaces when tab is pressed.
     """
     def run(self, edit):
         spaces = "    "
+        space_count = len(spaces)
         sel = self.view.sel()
         for region in sel:
             # If the region isn't empty it's selected text so
@@ -41,7 +34,7 @@ class VimTabPressCommand(sublime_plugin.TextCommand):
                 i = 0
                 for l in selectedLines:
                     self.view.insert(edit, l.begin() + i, spaces)
-                    i += 4
+                    i += space_count
             else:
                 # For those cases where nothing is selected, put the
                 # spaces whereever the cursor is.
@@ -59,6 +52,7 @@ class VimShiftTabPressCommand(sublime_plugin.TextCommand):
     """
     def run(self, edit):
         spaces = "    "
+        space_count = len(spaces)
         sel = self.view.sel()
         for region in sel:
             selectedLines = self.view.lines(region)
@@ -68,4 +62,4 @@ class VimShiftTabPressCommand(sublime_plugin.TextCommand):
 
                 # Only do this if there are enough spaces to start
                 if s.find(spaces,0) == 0:
-                    self.view.replace(edit, l, s[4:])
+                    self.view.replace(edit, l, s[space_count:])
