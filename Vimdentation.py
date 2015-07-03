@@ -56,10 +56,10 @@ class VimShiftTabPressCommand(sublime_plugin.TextCommand):
         sel = self.view.sel()
         for region in sel:
             selectedLines = self.view.lines(region)
-            for l in selectedLines:
+            for l in reversed(selectedLines):
                 # Extract the string from the line region
                 s = self.view.substr(l)
 
                 # Only do this if there are enough spaces to start
                 if s.find(spaces,0) == 0:
-                    self.view.replace(edit, l, s[space_count:])
+                    self.view.erase(edit, sublime.Region(l.begin(), l.begin() + space_count))
