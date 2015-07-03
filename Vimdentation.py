@@ -37,8 +37,12 @@ class VimTabPressCommand(sublime_plugin.TextCommand):
                     i += space_count
             else:
                 # For those cases where nothing is selected, put the
-                # spaces whereever the cursor is.
-                self.view.insert(edit, region.begin(), spaces)
+                # spaces whereever the cursor is.  Handle tab stops by
+                # calculating our current position within the line
+                line = self.view.line(region)
+                spaces_to_insert = space_count - ((region.begin() - line.begin()) % space_count)
+                for i in xrange(0, spaces_to_insert): 
+                    self.view.insert(edit, region.begin(), " ")
 
 class VimShiftTabPressCommand(sublime_plugin.TextCommand):
     """
