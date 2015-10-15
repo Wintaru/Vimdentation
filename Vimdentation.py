@@ -33,8 +33,10 @@ class VimTabPressCommand(sublime_plugin.TextCommand):
                 selectedLines = self.view.lines(region)
                 i = 0
                 for l in selectedLines:
-                    self.view.insert(edit, l.begin() + i, spaces)
-                    i += space_count
+                    # No need to insert spaces if the line is empty
+                    if(l.a != l.b):
+                        self.view.insert(edit, l.begin() + i, spaces)
+                        i += space_count
             else:
                 # For those cases where nothing is selected, put the
                 # spaces whereever the cursor is.
@@ -54,14 +56,38 @@ class VimShiftTabPressCommand(sublime_plugin.TextCommand):
         spaces = "    "
         space_count = len(spaces)
         sel = self.view.sel()
+
         for region in sel:
             selectedLines = self.view.lines(region)
+
+            # Expand the region to include the beginning of the first line and
+            # the end of the last line.
+            first_line = selectedLines[0]
+            last_line = selectedLines[len(selectedLines)-1]
+
+            # Some rigamarole is involved because we might have a reversed region.
+            if(region.b > region.a):
+                region.a = first_line.a
+                region.b = last_line.b
+            else:
+                region.a = last_line.b
+                region.b = first_line.a
+
+            # I tried replacing line by line in-place and that didn't work. So
+            # instead we will save the modified lines to new_selection and replace
+            # the entire region once we have finished.
+            new_selection = ""
             for l in selectedLines:
                 # Extract the string from the line region
                 full_line = self.view.line(l)
                 s = self.view.substr(full_line)
-                print(s)
 
                 # Only do this if there are enough spaces to start
                 if s.find(spaces,0) == 0:
-                    self.view.replace(edit, full_line, s[space_count:])
+                    s = s.replace(spaces, "", 1)
+
+                # Add the newline back in here. We will truncate the last one
+                # when we replace the region at the end.
+                new_selection = new_selection + s + "\n"
+
+            self.view.replace(edit, region, new_selection[:-1])
