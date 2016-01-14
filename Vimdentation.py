@@ -1,13 +1,14 @@
-import sublime, sublime_plugin
-import sys
-import re
+import sublime
+import sublime_plugin
+
 
 class VimTabPressCommand(sublime_plugin.TextCommand):
     """
     This is meant to be bound on the tab key like this:
     { "keys": ["tab"], "command": "vim_tab_press", "context":
         [
-            { "key": "auto_complete_visible", "operator": "equal", "operand": false }
+            { "key": "auto_complete_visible",
+    "operator": "equal", "operand": false }
         ]
     }
 
@@ -39,8 +40,13 @@ class VimTabPressCommand(sublime_plugin.TextCommand):
                         i += space_count
             else:
                 # For those cases where nothing is selected, put the
-                # spaces whereever the cursor is.
-                self.view.insert(edit, region.begin(), spaces)
+                # spaces whereever the cursor is.  Handle tab stops by
+                # calculating our current position within the line
+                line = self.view.line(region)
+                spaces_to_insert = space_count - ((region.begin() - line.begin()) % space_count)
+                for i in range(0, spaces_to_insert):
+                    self.view.insert(edit, region.begin(), " ")
+
 
 class VimShiftTabPressCommand(sublime_plugin.TextCommand):
     """
@@ -60,34 +66,11 @@ class VimShiftTabPressCommand(sublime_plugin.TextCommand):
         for region in sel:
             selectedLines = self.view.lines(region)
 
-            # Expand the region to include the beginning of the first line and
-            # the end of the last line.
-            first_line = selectedLines[0]
-            last_line = selectedLines[len(selectedLines)-1]
-
-            # Some rigamarole is involved because we might have a reversed region.
-            if(region.b > region.a):
-                region.a = first_line.a
-                region.b = last_line.b
-            else:
-                region.a = last_line.b
-                region.b = first_line.a
-
-            # I tried replacing line by line in-place and that didn't work. So
-            # instead we will save the modified lines to new_selection and replace
-            # the entire region once we have finished.
-            new_selection = ""
-            for l in selectedLines:
+            for l in reversed(selectedLines):
                 # Extract the string from the line region
                 full_line = self.view.line(l)
                 s = self.view.substr(full_line)
 
                 # Only do this if there are enough spaces to start
-                if s.find(spaces,0) == 0:
-                    s = s.replace(spaces, "", 1)
-
-                # Add the newline back in here. We will truncate the last one
-                # when we replace the region at the end.
-                new_selection = new_selection + s + "\n"
-
-            self.view.replace(edit, region, new_selection[:-1])
+                if s.find(spaces, 0) == 0:
+                    self.view.erase(edit, sublime.Region(l.begin(), l.begin() + space_count))
